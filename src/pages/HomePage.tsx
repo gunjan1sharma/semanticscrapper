@@ -10,35 +10,43 @@ import {
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import DownloadImage from "../assets/images/download.png";
-import React, { ChangeEventHandler, useEffect, useState } from "react";
+import React, {
+  ChangeEventHandler,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import ReactPlayer from "react-player";
 import axios from "axios";
 import { Image, Root } from "../extras/types";
 import SingleComponent from "../components/SingleComponent";
 import ImageComponent from "../components/ImageComponent";
 import ReactJson from "react-json-view";
+import FeatureIntro from "../components/FeatureIntro";
+import { ColorContext } from "../extras/ColorContext";
 
-const API_BASE_URL = `http://192.168.1.88:9999/extras/v1/api/parsing/semantic-parser?siteUrl=`;
+const API_BASE_URL = `https://appnor-backend.onrender.com/extras/v1/api/parsing/semantic-parser?siteUrl=`;
 
 function HomePage(props: any) {
   const [videoUrl, setVideoUrl] = useState("");
+  const colorContex = useContext(ColorContext);
   const [inVideoUrl, setInVideoUrl] = useState("");
   const [audioResponse, setAudioResponse] = useState<any>();
   const [playVideo, setPlayVideo] = useState(false);
   const [isTermsAggred, setIsTermsAggred] = useState(true);
   const [isDownloadSuccess, setIsDownloadSuccess] = useState(false);
   const [open, setOpen] = React.useState(false);
+  const scrollRef = useRef<any>(null);
 
   const [displayedItems, setDisplayedItems] = useState<Image[]>();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    // setIsDownloadSuccess(true);
-    // setDisplayedItems(audioResponse.links.slice(0, itemsPerPage));
+    scrollToDiv();
     return () => {};
-  }, []);
-
+  }, [colorContex.point]);
 
   const handleClose = () => {
     setOpen(false);
@@ -59,7 +67,6 @@ function HomePage(props: any) {
     }
   }
 
-
   function handleCheckboxChange(checked: boolean) {
     setIsTermsAggred(checked);
     //setPlayVideo(checked);
@@ -72,7 +79,7 @@ function HomePage(props: any) {
     }
 
     if (videoUrl === "" || !videoUrl.startsWith("https://www")) {
-      alert("A Valid Website URL[https://www] is Required!!");
+      alert("A Valid Website URL [https://www] is Required!!");
       return;
     }
     handleOpen();
@@ -106,6 +113,12 @@ function HomePage(props: any) {
     window.open(videoUrl, "_blank");
   }
 
+  function scrollToDiv() {
+    if (colorContex.point !== 0) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      colorContex.setPoint(0);
+    }
+  }
 
   const backdrop = (
     <React.Fragment>
@@ -125,8 +138,15 @@ function HomePage(props: any) {
   );
 
   return (
-    <div className="md:m-10 sm:m-5 flex flex-col items-center justify-center">
+    <div
+      ref={scrollRef}
+      className="md:m-10 sm:m-5 flex flex-col items-center justify-center"
+    >
       {backdrop}
+      <FeatureIntro
+        heading="Power Web with Our HTML Scraping Ninja!"
+        desc="Trapped in the confines of ordinary web browsing?  Slice through the limitations and extract pure HTML gold from any website with our lightning-fast scraping tool!⚡️Simply provide a URL, and watch as our ninja swiftly captures every element, structure, and data point, delivering them to your command! Uncover hidden insights, conduct effortless research, build custom datasets, and automate tasks like a true webmaster!"
+      />
       <div className="flex flex-col items-center border shadow-lg p-4">
         <TextField
           fullWidth
@@ -151,8 +171,8 @@ function HomePage(props: any) {
           Visit Website
         </Button>
         <h3 className="text-xs text-center w-80 m-2">
-          A direct list of result will get triggered if video has only one
-          format else a list of downloadable video will get presented.
+          Scrapped data will get presented in List based UI format or if data is
+          condensed then expect raw json.
         </h3>
         <div className="flex items-center justify-center">
           <Checkbox
@@ -194,7 +214,7 @@ function HomePage(props: any) {
       {isDownloadSuccess && (
         <div className="w-screen">
           <ReactJson
-            style={{ overflowX: "scroll" }}
+            style={{ overflowX: "scroll", padding: "10px" }}
             src={audioResponse}
             enableClipboard={true}
             displayObjectSize={true}
